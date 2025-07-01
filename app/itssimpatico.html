@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>It's Simpatico</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #0f0f0f;
+            color: #e5e5e5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            line-height: 1.5;
+        }
+
+        .container {
+            background-color: #1a1a1a;
+            border: 1px solid #2d2d2d;
+            border-radius: 12px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            padding: 24px 32px;
+            border-bottom: 1px solid #2d2d2d;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #a0a0a0;
+        }
+
+        .controls {
+            padding: 24px 32px;
+            border-bottom: 1px solid #2d2d2d;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: 1px solid #3d3d3d;
+            border-radius: 8px;
+            background-color: #2a2a2a;
+            color: #e5e5e5;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        button:hover {
+            background-color: #3a3a3a;
+            border-color: #4d4d4d;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button:disabled {
+            background-color: #1a1a1a;
+            border-color: #2d2d2d;
+            color: #666666;
+            cursor: not-allowed;
+        }
+
+        button:disabled:hover {
+            background-color: #1a1a1a;
+            border-color: #2d2d2d;
+            transform: none;
+        }
+
+        .start-btn {
+            background-color: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+        }
+
+        .start-btn:hover:not(:disabled) {
+            background-color: #f0f0f0;
+        }
+
+        .start-btn:disabled {
+            background-color: #333333;
+            color: #666666;
+            border-color: #333333;
+        }
+
+        .copy-btn {
+            background-color: #2a2a2a;
+            border-color: #3d3d3d;
+        }
+
+        .copy-btn.copied {
+            background-color: #1a4a3a;
+            border-color: #2d5d4d;
+            color: #90ee90;
+        }
+
+        .status-section {
+            padding: 16px 32px;
+            border-bottom: 1px solid #2d2d2d;
+        }
+
+        .status {
+            font-size: 14px;
+            color: #a0a0a0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status.listening {
+            color: #90ee90;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #666666;
+        }
+
+        .status.listening .status-dot {
+            background-color: #90ee90;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .transcript-section {
+            padding: 32px;
+        }
+
+        .transcript-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .transcript-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .word-count {
+            font-size: 12px;
+            color: #666666;
+        }
+
+        .transcript-box {
+            background-color: #0f0f0f;
+            border: 1px solid #2d2d2d;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #e5e5e5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .transcript-box::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .transcript-box::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .transcript-box::-webkit-scrollbar-thumb {
+            background: #3d3d3d;
+            border-radius: 3px;
+        }
+
+        .transcript-box::-webkit-scrollbar-thumb:hover {
+            background: #4d4d4d;
+        }
+
+        .interim {
+            color: #a0a0a0;
+            font-style: italic;
+        }
+
+        .empty-state {
+            color: #666666;
+            font-style: italic;
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        .error {
+            margin: 16px 32px;
+            padding: 12px 16px;
+            background-color: #2a1a1a;
+            border: 1px solid #4d2d2d;
+            border-radius: 8px;
+            color: #ff9999;
+            font-size: 14px;
+            display: none;
+        }
+
+        .icon {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            button {
+                justify-content: center;
+            }
+
+            .transcript-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1> It's Simpatico – Let Your Words Flow</h1>
+            <div class="subtitle">Convert your speech to text in real-time</div>
+        </div>
+        
+        <div class="controls">
+            <button class="start-btn" onclick="startListening()">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                </svg>
+                Start Listening
+            </button>
+            <button class="stop-btn" onclick="stopListening()" disabled>
+                <svg class="icon" viewBox="0 0 24 24">
+                    <rect x="6" y="6" width="12" height="12" rx="2"/>
+                </svg>
+                Stop
+            </button>
+            <button class="clear-btn" onclick="clearText()">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                </svg>
+                Clear
+            </button>
+            <button class="copy-btn" onclick="copyText()" id="copyBtn">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                Copy Text
+            </button>
+        </div>
+        
+        <div class="status-section">
+            <div id="status" class="status">
+                <div class="status-dot"></div>
+                Ready to start transcription
+            </div>
+        </div>
+
+        <div class="transcript-section">
+            <div class="transcript-header">
+                <div class="transcript-title">Transcript</div>
+                <div id="wordCount" class="word-count">0 words</div>
+            </div>
+            
+            <div id="transcript" class="transcript-box">
+                <div class="empty-state">Your transcribed speech will appear here...</div>
+            </div>
+        </div>
+
+        <div id="error" class="error"></div>
+    </div>
+
+    <script>
+        let recognition = null;
+        let isListening = false;
+        let finalTranscript = '';
+
+        function checkBrowserSupport() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                showError('Speech recognition not supported. Please use Chrome, Edge, or Safari.');
+                return false;
+            }
+            return true;
+        }
+
+        function initSpeechRecognition() {
+            if (!checkBrowserSupport()) return;
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = function() {
+                isListening = true;
+                updateStatus('Listening... Speak now', 'listening');
+                document.querySelector('.start-btn').disabled = true;
+                document.querySelector('.stop-btn').disabled = false;
+                hideError();
+            };
+
+            recognition.onend = function() {
+                isListening = false;
+                updateStatus('Ready to start transcription', 'stopped');
+                document.querySelector('.start-btn').disabled = false;
+                document.querySelector('.stop-btn').disabled = true;
+            };
+
+            recognition.onerror = function(event) {
+                console.log('Speech recognition error:', event.error);
+                
+                let errorMsg = '';
+                switch(event.error) {
+                    case 'not-allowed':
+                        errorMsg = 'Microphone access denied. Please allow microphone access and refresh the page.';
+                        break;
+                    case 'no-speech':
+                        errorMsg = 'No speech detected. Try speaking louder or closer to the microphone.';
+                        break;
+                    case 'audio-capture':
+                        errorMsg = 'No microphone found. Please check your microphone connection.';
+                        break;
+                    case 'network':
+                        errorMsg = 'Network error. Please check your internet connection.';
+                        break;
+                    default:
+                        errorMsg = 'Speech recognition error: ' + event.error;
+                }
+                
+                showError(errorMsg);
+                
+                isListening = false;
+                document.querySelector('.start-btn').disabled = false;
+                document.querySelector('.stop-btn').disabled = true;
+                updateStatus('Error occurred', 'stopped');
+            };
+
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript + ' ';
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                
+                updateTranscript(interimTranscript);
+            };
+        }
+
+        function updateTranscript(interimTranscript) {
+            let displayText = finalTranscript;
+            if (interimTranscript) {
+                displayText += '<span class="interim">' + interimTranscript + '</span>';
+            }
+            
+            const transcriptEl = document.getElementById('transcript');
+            if (displayText.trim()) {
+                transcriptEl.innerHTML = displayText;
+                transcriptEl.scrollTop = transcriptEl.scrollHeight;
+            } else {
+                transcriptEl.innerHTML = '<div class="empty-state">Your transcribed speech will appear here...</div>';
+            }
+            
+            updateWordCount();
+        }
+
+        function updateWordCount() {
+            const wordCount = finalTranscript.trim().split(/\s+/).filter(word => word.length > 0).length;
+            document.getElementById('wordCount').textContent = `${wordCount} word${wordCount !== 1 ? 's' : ''}`;
+        }
+
+        function startListening() {
+            if (!recognition) {
+                initSpeechRecognition();
+            }
+            
+            if (recognition && !isListening) {
+                try {
+                    recognition.start();
+                } catch (error) {
+                    showError('Could not start speech recognition. Please try refreshing the page.');
+                    console.error('Start error:', error);
+                }
+            }
+        }
+
+        function stopListening() {
+            if (recognition && isListening) {
+                recognition.stop();
+            }
+        }
+
+        function clearText() {
+            finalTranscript = '';
+            document.getElementById('transcript').innerHTML = '<div class="empty-state">Your transcribed speech will appear here...</div>';
+            updateWordCount();
+            hideError();
+        }
+
+        function copyText() {
+            const textToCopy = finalTranscript.trim();
+            const copyBtn = document.getElementById('copyBtn');
+            
+            if (!textToCopy) {
+                showError('No text to copy');
+                return;
+            }
+
+            navigator.clipboard.writeText(textToCopy).then(function() {
+                // Success feedback
+                copyBtn.classList.add('copied');
+                copyBtn.innerHTML = `
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <polyline points="20,6 9,17 4,12"/>
+                    </svg>
+                    Copied!
+                `;
+                
+                setTimeout(() => {
+                    copyBtn.classList.remove('copied');
+                    copyBtn.innerHTML = `
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                        Copy Text
+                    `;
+                }, 2000);
+                
+                hideError();
+            }).catch(function(err) {
+                console.error('Copy failed:', err);
+                showError('Failed to copy text. Please try selecting and copying manually.');
+            });
+        }
+
+        function updateStatus(message, className) {
+            const statusEl = document.getElementById('status');
+            statusEl.innerHTML = `<div class="status-dot"></div>${message}`;
+            statusEl.className = 'status ' + className;
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            setTimeout(() => hideError(), 5000);
+        }
+
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+
+        window.onload = function() {
+            console.log('Speech transcription app loaded');
+            updateWordCount();
+        };
+    </script>
+</body>
+</html>
