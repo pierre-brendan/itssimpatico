@@ -179,10 +179,10 @@
     </div>
 
     <div class="controls">
-      <button class="start-btn" onclick="startListening()">Start</button>
-      <button onclick="stopListening()" disabled id="stopBtn">Stop</button>
-      <button onclick="clearText()">Clear</button>
-      <button onclick="copyText()" id="copyBtn">Copy</button>
+      <button class="start-btn" onclick="startListening()">🎙 Start</button>
+      <button onclick="stopListening()" disabled id="stopBtn">⏹ Stop</button>
+      <button onclick="clearText()">🗑 Clear</button>
+      <button onclick="copyText()" id="copyBtn">📋 Copy</button>
     </div>
 
     <div class="status-section" id="status">
@@ -217,7 +217,9 @@
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognition = new SpeechRecognition();
-      recognition.continuous = true;
+
+      const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+      recognition.continuous = !isMobile;
       recognition.interimResults = true;
       recognition.lang = 'en-US';
 
@@ -243,24 +245,28 @@
       recognition.onresult = (event) => {
         let interim = '';
         for (let i = event.resultIndex; i < event.results.length; ++i) {
+          const transcript = event.results[i][0].transcript.trim();
+
           if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript + ' ';
+            if (!finalTranscript.endsWith(transcript + ' ')) {
+              finalTranscript += transcript + ' ';
+            }
           } else {
-            interim += event.results[i][0].transcript;
+            interim += transcript + ' ';
           }
         }
 
         let output = finalTranscript;
         if (interim) {
-          output += `<span class="interim">${interim}</span>`;
+          output += `<span class="interim">${interim.trim()}</span>`;
         }
 
         const el = document.getElementById('transcript');
         el.innerHTML = output || '<div class="empty-state">Your transcribed text will appear here...</div>';
         el.scrollTop = el.scrollHeight;
 
-        document.getElementById('wordCount').innerText =
-          `${finalTranscript.trim().split(/\s+/).filter(Boolean).length} words`;
+        const count = finalTranscript.trim().split(/\s+/).filter(Boolean).length;
+        document.getElementById('wordCount').innerText = `${count} word${count !== 1 ? 's' : ''}`;
       };
 
       recognition.start();
