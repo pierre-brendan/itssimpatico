@@ -118,36 +118,33 @@
 
     .transcript-section {
       padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
     }
 
     .transcript-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1rem;
     }
 
-    .transcript-box {
-      background-color: #0f0f0f;
+    #transcriptInput {
+      background: #0f0f0f;
+      color: #f2f2f2;
       border: 1px solid #2d2d2d;
-      border-radius: 8px;
       padding: 1rem;
+      border-radius: 8px;
       min-height: 150px;
-      max-height: 300px;
-      overflow-y: auto;
-      white-space: pre-wrap;
-      word-wrap: break-word;
+      font-size: 1rem;
+      resize: vertical;
     }
 
-    .interim {
-      color: #aaa;
-      font-style: italic;
-    }
-
-    .empty-state {
-      text-align: center;
-      color: #666;
-      font-style: italic;
+    #renderedOutput {
+      border: 1px solid #2d2d2d;
+      padding: 1rem;
+      background: #161616;
+      border-radius: 8px;
     }
 
     .footer-note {
@@ -175,7 +172,7 @@
   <div class="container">
     <div class="header">
       <h1>It's Simpatico</h1>
-      <div class="subtitle">Real-time voice to text. 100% private.</div>
+      <div class="subtitle">Real-time voice to text. 100% private. Markdown-friendly.</div>
     </div>
 
     <div class="controls">
@@ -191,23 +188,61 @@
 
     <div class="transcript-section">
       <div class="transcript-header">
-        <div>Transcript</div>
+        <div>Transcript (editable)</div>
         <div id="wordCount">0 words</div>
       </div>
-      <div id="transcript" class="transcript-box">
-        <div class="empty-state">Your transcribed text will appear here...</div>
-      </div>
+
+      <textarea id="transcriptInput" placeholder="Your transcribed text will appear here..."></textarea>
+      <div id="renderedOutput"></div>
     </div>
 
     <div class="footer-note">
-      No training. No cloud. Your voice stays yours.
+      Supports Markdown • Your text never leaves the page
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
     let recognition = null;
     let isListening = false;
     let finalTranscript = '';
+
+    const inputEl = document.getElementById('transcriptInput');
+    const outputEl = document.getElementById('renderedOutput');
+
+    inputEl.addEventListener('input', () => {
+      outputEl.innerHTML = marked.parse(inputEl.value);
+      updateWordCount(inputEl.value);
+    });
+
+    function updateWordCount(text) {
+      const count = text.trim().split(/\s+/).filter(Boolean).length;
+      document.getElementById('wordCount').innerText = `${count} word${count !== 1 ? 's' : ''}`;
+    }
+
+    function updateTranscript(interimTranscript) {
+      let text = finalTranscript + (interimTranscript ? ' ' + interimTranscript : '');
+      inputEl.value = text.trim();
+      outputEl.innerHTML = marked.parse(inputEl.value);
+      updateWordCount(inputEl.value);
+    }
+
+    function clearText() {
+      finalTranscript = '';
+      inputEl.value = '';
+      outputEl.innerHTML = '';
+      updateWordCount('');
+    }
+
+    function copyText() {
+      const text = inputEl.value.trim();
+      if (!text) return alert('Nothing to copy.');
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.innerText = '✅ Copied!';
+        setTimeout(() => btn.innerText = '📋 Copy', 2000);
+      });
+    }
 
     function startListening() {
       if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
@@ -246,7 +281,6 @@
         let interim = '';
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           const transcript = event.results[i][0].transcript.trim();
-
           if (event.results[i].isFinal) {
             if (!finalTranscript.endsWith(transcript + ' ')) {
               finalTranscript += transcript + ' ';
@@ -255,18 +289,7 @@
             interim += transcript + ' ';
           }
         }
-
-        let output = finalTranscript;
-        if (interim) {
-          output += `<span class="interim">${interim.trim()}</span>`;
-        }
-
-        const el = document.getElementById('transcript');
-        el.innerHTML = output || '<div class="empty-state">Your transcribed text will appear here...</div>';
-        el.scrollTop = el.scrollHeight;
-
-        const count = finalTranscript.trim().split(/\s+/).filter(Boolean).length;
-        document.getElementById('wordCount').innerText = `${count} word${count !== 1 ? 's' : ''}`;
+        updateTranscript(interim.trim());
       };
 
       recognition.start();
@@ -276,22 +299,6 @@
       if (recognition && isListening) {
         recognition.stop();
       }
-    }
-
-    function clearText() {
-      finalTranscript = '';
-      document.getElementById('transcript').innerHTML = '<div class="empty-state">Your transcribed text will appear here...</div>';
-      document.getElementById('wordCount').innerText = '0 words';
-    }
-
-    function copyText() {
-      const text = finalTranscript.trim();
-      if (!text) return alert('Nothing to copy.');
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = document.getElementById('copyBtn');
-        btn.innerText = '✅ Copied!';
-        setTimeout(() => btn.innerText = 'Copy', 2000);
-      });
     }
   </script>
 </body>
