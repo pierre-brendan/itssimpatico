@@ -176,10 +176,10 @@
     </div>
 
     <div class="controls">
-      <button class="start-btn" onclick="startListening()">Start</button>
-      <button onclick="stopListening()" disabled id="stopBtn">Stop</button>
-      <button onclick="clearText()">Clear</button>
-      <button onclick="copyText()" id="copyBtn">Copy</button>
+      <button class="start-btn" onclick="startListening()">🎙 Start</button>
+      <button onclick="stopListening()" disabled id="stopBtn">⏹ Stop</button>
+      <button onclick="clearText()">🗑 Clear</button>
+      <button onclick="copyText()" id="copyBtn">📋 Copy</button>
     </div>
 
     <div class="status-section" id="status">
@@ -197,7 +197,7 @@
     </div>
 
     <div class="footer-note">
-      Supports Markdown • Your text never leaves the page
+      Supports Markdown • Make sure your browser supports speech recognition and microphone access is enabled.
     </div>
   </div>
 
@@ -246,7 +246,7 @@
 
     function startListening() {
       if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-        alert("Speech Recognition not supported.");
+        alert("🛑 Your browser does not support speech recognition. Try Chrome, Edge, or Safari.");
         return;
       }
 
@@ -273,7 +273,24 @@
       };
 
       recognition.onerror = (e) => {
-        alert("Error: " + e.error);
+        let message = "Speech recognition error.";
+        switch (e.error) {
+          case "not-allowed":
+            message = "Microphone access denied. Please allow microphone permissions for this site in your browser settings.";
+            break;
+          case "no-speech":
+            message = "No speech detected. Try speaking louder or check your mic.";
+            break;
+          case "audio-capture":
+            message = "No microphone found. Please ensure your microphone is connected and working.";
+            break;
+          case "network":
+            message = "Network error. Check your internet connection.";
+            break;
+          default:
+            message = "An error occurred. Make sure you're using a supported browser (Chrome, Edge, Safari) and that microphone access is allowed.";
+        }
+        alert("🛑 " + message);
         stopListening();
       };
 
